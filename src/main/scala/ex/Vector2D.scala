@@ -24,8 +24,17 @@ trait Vector2D:
   def magnitude: Double
 
 object Vector2D:
+
+  // Vector2D implementation
+  private case class Vector2DImpl(x: Double, y: Double) extends Vector2D:
+    def +(other: Vector2D): Vector2D = Vector2D(x + other.x, y + other.y)
+    def -(other: Vector2D): Vector2D = Vector2D(x - other.x, y - other.y)
+    def *(scalar: Double): Vector2D = Vector2D(x * scalar, y * scalar)
+    def dot(other: Vector2D): Double = x * other.x + y * other.y
+    def magnitude: Double = sqrt(x * x + y * y)
+
   // Factory method to create Vector2D instances
-  def apply(x: Double, y: Double): Vector2D = ???
+  def apply(x: Double, y: Double): Vector2D = Vector2DImpl(x, y)
 
   // Common vectors (optional but nice)
   val zero: Vector2D = apply(0.0, 0.0)
@@ -77,3 +86,6 @@ object Vector2D:
   // sum * 3.0 = (6.0, 18.0)
   // (6.0, 18.0) - (1.0, 1.0) = (5.0, 17.0)
   println(s"Multiple Ops: $multipleOps, x: ${multipleOps.x}, y: ${multipleOps.y}")
+
+  // Test toString()
+  println(v1.toString)
