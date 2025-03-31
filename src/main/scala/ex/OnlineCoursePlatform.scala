@@ -1,5 +1,6 @@
 package ex
 
+import ex.OnlineCoursePlatform.OnlineCoursePlatformImpl
 import util.Optionals.Optional
 import util.Sequences.* // Assuming Sequence and related methods are here
 
@@ -11,8 +12,18 @@ trait Course:
   def category: String // e.g., "Programming", "Data Science", "Design"
 
 object Course:
+
+  // Course implementation
+  private case class CourseImpl(
+    courseId: String,
+    title: String,
+    instructor: String,
+    category: String
+  ) extends Course
+
   // Factory method for creating Course instances
-  def apply(courseId: String, title: String, instructor: String, category: String): Course = ???
+  def apply(courseId: String, title: String, instructor: String, category: String): Course =
+    CourseImpl(courseId, title, instructor, category)
 /**
  * Manages courses and student enrollments on an online learning platform.
  */
@@ -85,8 +96,43 @@ trait OnlineCoursePlatform:
 end OnlineCoursePlatform
 
 object OnlineCoursePlatform:
+
+  // OnlineCoursePlatform implementation (using only Optionals, Sequences and Streams)
+  private class OnlineCoursePlatformImpl extends OnlineCoursePlatform:
+    // Internal state representation
+    private var courses: Sequence[Course] = Sequence.empty
+    private var enrollments: Sequence[(String, String)] = Sequence.empty
+    
+    def addCourse(course: Course): Unit =
+      if !courses.contains(course) then
+        courses.concat(Sequence(course))
+        
+    def findCoursesByCategory(category: String): Sequence[Course] =
+      courses.filter(_.category == category)
+      
+    def getCourse(courseId: String): Optional[Course] =
+      courses.find(_.courseId == courseId)
+
+    def removeCourse(course: Course): Unit =
+      courses = courses.filter(_.courseId != course.courseId)
+      
+    def isCourseAvailable(courseId: String): Boolean =
+      courses.filter(_.courseId == courseId) != Sequence.empty
+      
+    def enrollStudent(studentId: String, courseId: String): Unit =
+      if isCourseAvailable(courseId) && !isStudentEnrolled(studentId, courseId) then
+        enrollments.concat(Sequence((studentId, courseId)))
+        
+    def unenrollStudent(studentId: String, courseId: String): Unit =
+      enrollments = enrollments.filter(e => e._1 != studentId && e._2 != courseId)
+      
+    def getStudentEnrollments(studentId: String): Sequence[Course] = ???
+    
+    def isStudentEnrolled(studentId: String, courseId: String): Boolean =
+      enrollments.filter(e => e._1 == studentId && e._2 == courseId) != Sequence.empty
+        
   // Factory method for creating an empty platform instance
-  def apply(): OnlineCoursePlatform = ??? // Fill Here!
+  def apply(): OnlineCoursePlatform = new OnlineCoursePlatformImpl
 
 /**
  * Represents an online learning platform that offers courses and manages student enrollments.
