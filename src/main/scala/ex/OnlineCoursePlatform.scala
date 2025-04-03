@@ -1,6 +1,5 @@
 package ex
 
-import ex.OnlineCoursePlatform.OnlineCoursePlatformImpl
 import util.Optionals.Optional
 import util.Sequences.* // Assuming Sequence and related methods are here
 
@@ -14,16 +13,13 @@ trait Course:
 object Course:
 
   // Course implementation
-  private case class CourseImpl(
-    courseId: String,
-    title: String,
-    instructor: String,
-    category: String
-  ) extends Course
+  private case class CourseImpl(courseId: String, title: String, instructor: String, category: String) extends Course
 
   // Factory method for creating Course instances
   def apply(courseId: String, title: String, instructor: String, category: String): Course =
     CourseImpl(courseId, title, instructor, category)
+
+  val empty = apply("", "", "", "") // Empty course instance for convenience
 /**
  * Manages courses and student enrollments on an online learning platform.
  */
@@ -99,13 +95,17 @@ object OnlineCoursePlatform:
 
   // OnlineCoursePlatform implementation (using only Optionals, Sequences and Streams)
   private class OnlineCoursePlatformImpl extends OnlineCoursePlatform:
+
+    // Enrollment data structure
+    private case class Enrollment(studentId: String, courseId: String)
+
     // Internal state representation
     private var courses: Sequence[Course] = Sequence.empty
-    private var enrollments: Sequence[(String, String)] = Sequence.empty
+    private var enrollments: Sequence[Enrollment] = Sequence.empty
     
     def addCourse(course: Course): Unit =
       if !courses.contains(course) then
-        courses.concat(Sequence(course))
+        courses = courses.concat(Sequence(course))
         
     def findCoursesByCategory(category: String): Sequence[Course] =
       courses.filter(_.category == category)
@@ -121,12 +121,13 @@ object OnlineCoursePlatform:
       
     def enrollStudent(studentId: String, courseId: String): Unit =
       if isCourseAvailable(courseId) && !isStudentEnrolled(studentId, courseId) then
-        enrollments.concat(Sequence((studentId, courseId)))
+        enrollments = enrollments.concat(Sequence(Enrollment(studentId, courseId)))
         
     def unenrollStudent(studentId: String, courseId: String): Unit =
-      enrollments = enrollments.filter(e => e._1 != studentId && e._2 != courseId)
+      enrollments = enrollments.filter(e => e.studentId != studentId || e.courseId != courseId)
       
-    def getStudentEnrollments(studentId: String): Sequence[Course] = ???
+    def getStudentEnrollments(studentId: String): Sequence[Course] =
+      enrollments.filter(_.studentId == studentId).map(e => getCourse(e.courseId).orElse(Course.empty))
     
     def isStudentEnrolled(studentId: String, courseId: String): Boolean =
       enrollments.filter(e => e._1 == studentId && e._2 == courseId) != Sequence.empty
@@ -188,4 +189,3 @@ object OnlineCoursePlatform:
   platform.removeCourse(pythonCourse)
   println(s"Is PYTHON01 available? ${platform.isCourseAvailable(pythonCourse.courseId)}") // false
   println(s"Programming courses: ${platform.findCoursesByCategory("Programming")}") // Sequence(scalaCourse)
-
